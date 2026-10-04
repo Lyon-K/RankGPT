@@ -51,6 +51,30 @@ class OpenaiClient:
             completion = completion.choices[0].text
         return completion
 
+class LlamaClient:
+    def __init__(self, keys):
+        from llama_index.llms.llama_api import LlamaAPI
+        from llama_index.core.llms import ChatMessage
+        self.client = LlamaAPI(api_key=keys)
+        self.chatMessage = ChatMessage
+
+    def chat(self, messages, return_text=False, max_tokens=300, *args, **kwargs):
+        while True:
+            try:
+                # print(f'args: {messages}')
+                messages = [self.chatMessage(role=message.role, content=message.content) for message in messages]
+                print('within try2')
+                completion = self.client.chat(messages)
+                print('within try3')
+                print(f"completion: {completion}")
+                break
+            except Exception as e:
+                print(str(e))
+                time.sleep(0.1)
+        if return_text:
+            print(f"completion: {completion}")
+            completion = completion.choices[0].message.content
+        return completion
 
 class ClaudeClient:
     def __init__(self, keys):
@@ -179,6 +203,8 @@ def run_llm(messages, api_key=None, model_name="gpt-3.5-turbo"):
         Client = OpenaiClient
     elif 'claude' in model_name:
         Client = ClaudeClient
+    elif 'llama' in model_name:
+        Client = LlamaClient
     else:
         Client = LitellmClient
 
